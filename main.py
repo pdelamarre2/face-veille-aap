@@ -11,10 +11,26 @@ EMAIL_FROM     = "onboarding@resend.dev"
 resend.api_key = RESEND_API_KEY
 
 KEYWORDS = [
-    "emploi", "insertion", "inclusion", "discrimination",
-    "chomage", "recrutement", "entreprise", "territoire",
-    "handicap", "diversite", "egalite", "jeunes",
-    "formation", "RSA", "precarite", "solidarite", "mecenat",
+    # Emploi & insertion
+    "emploi", "insertion", "recrutement", "chomage", "demandeur emploi",
+    "eloigne emploi", "retour emploi", "parcours emploi", "insertion professionnelle",
+    # Seniors (Grande Cause FACE 2024-2025)
+    "senior", "seniors", "emploi senior", "45 ans", "diversite intergenerationnelle",
+    "seconde carriere", "age",
+    # Jeunes & education
+    "jeunes", "jeune", "orientation", "alternance", "apprentissage", "stage",
+    "mentorat", "quartier", "QPV", "egalite chances",
+    # Discrimination & diversite
+    "discrimination", "diversite", "egalite", "RSE", "inclusion", "handicap",
+    # Publics specifiques FACE
+    "refugie", "femme", "violence", "precaire", "precarite", "acces aux droits",
+    "illettrisme", "numerique", "exclusion", "pauvrete",
+    # Entreprises & mecenat
+    "mecenat", "mecenat competences", "entreprises engagees", "partenariat entreprise",
+    # Transition ecologique solidaire (4e axe FACE)
+    "transition ecologique", "ecologie solidaire",
+    # Territoire & collectivites
+    "territoire", "territorial", "collectivite", "Hauts-de-Seine", "Seine-Saint-Denis",
 ]
 
 def is_relevant(text):
