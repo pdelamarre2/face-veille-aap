@@ -2,19 +2,19 @@ name: Veille AAP FACE
 
 on:
   schedule:
-      - cron: '0 7 * * *'
-        workflow_dispatch:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
 
-        jobs:
-          veille:
-              runs-on: ubuntu-latest
-                  steps:
-                        - uses: actions/checkout@v3
-                              - uses: actions/setup-python@v4
-                                      with:
-                                                python-version: '3.11'
-                                                      - run: pip install -r requirements.txt
-                                                            - run: python main.py
-                                                                    env:
-                                                                              RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-                                                                                        EMAIL_TO: ${{ secrets.EMAIL_TO }}
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python main.py
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
