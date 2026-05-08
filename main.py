@@ -9,6 +9,7 @@ EMAIL_TO       = os.environ["EMAIL_TO"]
 EMAIL_FROM     = "onboarding@resend.dev"
 
 resend.api_key = RESEND_API_KEY
+source_errors = {}
 
 KEYWORDS = [
     # Emploi & insertion
@@ -163,7 +164,117 @@ def build_email_html(aaps):
     cards_html = ""
     for aap in aaps:
         cards_html += f'<div style="border-left:4px solid #1a56db;padding:12px 16px;margin-bottom:20px;background:#f8faff;"><p style="margin:0 0 4px;font-size:12px;color:#666;">{aap["source"]}</p><h3 style="margin:0 0 6px;font-size:16px;"><a href="{aap["url"]}" style="color:#1a56db;text-decoration:none;">{aap["title"]}</a></h3><p style="margin:0 0 6px;font-size:13px;">{aap["summary"]}</p><p style="margin:0;font-size:12px;color:#888;">Date limite : {aap["deadline"]}</p></div>'
-    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires Â· Region IDF Â· Mairie de Paris Â· Fondation de France Â· Malakoff Humanis Â· Banque des Territoires Â· Fondation Abbe Pierre Â· AG2R La Mondiale Â· Fondation SNCF Â· Fondation Mozaik Â· Associations.gouv.fr</p></div>'
+    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂ· Region IDF ÃÂ· Mairie de Paris ÃÂ· Fondation de France ÃÂ· Malakoff Humanis ÃÂ· Banque des Territoires ÃÂ· Fondation Abbe Pierre ÃÂ· AG2R La Mondiale ÃÂ· Fondation SNCF ÃÂ· Fondation Mozaik ÃÂ· Associations.gouv.fr</p></div>'
+
+
+def fetch_drieets_idf():
+    print("DRIEETS IDF...")
+    results = []
+    url = "https://drieets.ile-de-france.gouv.fr/les-actions/appels-a-projets-et-a-manifestation-d-interet"
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        links = soup.find_all("a", href=True)
+        seen = set()
+        for link in links:
+            title = link.get_text(strip=True)
+            href = link["href"]
+            if href.startswith("/"):
+                href = "https://drieets.ile-de-france.gouv.fr" + href
+            if title and href not in seen and is_relevant(title):
+                seen.add(href)
+                results.append({"source": "DRIEETS IDF", "title": title, "url": href, "deadline": "voir le lien", "summary": title})
+    except Exception as e:
+        print(f"  Erreur DRIEETS IDF: {e}")
+        source_errors["DRIEETS IDF"] = str(e)
+    print(f"  DRIEETS IDF: {len(results)} trouves")
+    return results
+
+
+def fetch_cd92():
+    print("CD92 Hauts-de-Seine...")
+    results = []
+    url = "https://www.hauts-de-seine.fr/les-aides/aides-aux-associations"
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        cards = soup.find_all("article") or soup.find_all(class_=lambda c: c and any(x in c.lower() for x in ["card", "aide", "item"]))
+        if not cards:
+            cards = soup.find_all("li", class_=True)
+        for card in cards[:30]:
+            title_tag = card.find(["h2", "h3", "h4"])
+            link_tag = card.find("a", href=True)
+            if not title_tag:
+                continue
+            title = title_tag.get_text(strip=True)
+            href = link_tag["href"] if link_tag else url
+            if href.startswith("/"):
+                href = "https://www.hauts-de-seine.fr" + href
+            desc = card.get_text(" ", strip=True)
+            if is_relevant(title + " " + desc):
+                results.append({"source": "CD92", "title": title, "url": href, "deadline": "voir le lien", "summary": desc[:300]})
+    except Exception as e:
+        print(f"  Erreur CD92: {e}")
+        source_errors["CD92"] = str(e)
+    print(f"  CD92: {len(results)} trouves")
+    return results
+
+
+def fetch_fondation_orange():
+    print("Fondation Orange...")
+    results = []
+    url = "https://www.fondationorange.com/fr/le-calendrier-des-appels-projets"
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for tag in soup.find_all(["h2", "h3", "h4"]):
+            title = tag.get_text(strip=True)
+            link_tag = tag.find("a", href=True) or tag.find_next("a", href=True)
+            href = link_tag["href"] if link_tag else url
+            if href.startswith("/"):
+                href = "https://www.fondationorange.com" + href
+            if title and is_relevant(title):
+                results.append({"source": "Fondation Orange", "title": title, "url": href, "deadline": "voir le lien", "summary": title})
+    except Exception as e:
+        print(f"  Erreur Fondation Orange: {e}")
+        source_errors["Fondation Orange"] = str(e)
+    print(f"  Fondation Orange: {len(results)} trouves")
+    return results
+
+
+def fetch_fondation_ceidf():
+    print("Fondation CEIDF...")
+    results = []
+    url = "https://www.fondation-ceidf.fr/nos-appels-a-projets/"
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        cards = soup.find_all("article") or soup.find_all(class_=lambda c: c and any(x in c.lower() for x in ["card", "projet", "appel"]))
+        for card in cards[:20]:
+            title_tag = card.find(["h2", "h3"])
+            link_tag = card.find("a", href=True)
+            if not title_tag:
+                continue
+            title = title_tag.get_text(strip=True)
+            href = link_tag["href"] if link_tag else url
+            if href.startswith("/"):
+                href = "https://www.fondation-ceidf.fr" + href
+            desc = card.get_text(" ", strip=True)
+            if is_relevant(title + " " + desc):
+                results.append({"source": "Fondation CEIDF", "title": title, "url": href, "deadline": "voir le lien", "summary": desc[:300]})
+    except Exception as e:
+        print(f"  Erreur Fondation CEIDF: {e}")
+        source_errors["Fondation CEIDF"] = str(e)
+    print(f"  Fondation CEIDF: {len(results)} trouves")
+    return results
 
 def send_email(aaps):
     subject = f"Veille AAP FACE - {len(aaps)} resultat(s) - {datetime.now().strftime('%d/%m/%Y')}" if aaps else f"Veille AAP FACE - RAS - {datetime.now().strftime('%d/%m/%Y')}"
