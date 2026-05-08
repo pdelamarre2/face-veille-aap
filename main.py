@@ -71,7 +71,9 @@ def fetch_aides_territoires():
     since = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d")
     params = {"format": "json", "perimeter": "ile-de-france-26", "date_published__gte": since, "limit": 50}
     try:
-        resp = requests.get(url, params=params, timeout=15)
+        at_token = os.environ.get("AIDES_TERRITOIRES_TOKEN", "")
+        at_headers = {"Authorization": "Token " + at_token} if at_token else {}
+        resp = requests.get(url, params=params, headers=at_headers, timeout=15)
         resp.raise_for_status()
         data = resp.json()
         for aid in data.get("results", []):
@@ -131,19 +133,19 @@ def fetch_mairie_paris():
     return results
 
 def fetch_fondation_de_france():
-    return scrape_generic("https://www.fondationdefrance.org/nos-actualites/appels-a-projets/", "Fondation de France", "https://www.fondationdefrance.org")
+    return scrape_generic("https://www.fondationdefrance.org/fr/appels-a-projets", "Fondation de France", "https://www.fondationdefrance.org")
 
 def fetch_malakoff_humanis():
-    return scrape_generic("https://fondation.malakoffhumanis.com/nos-actions/appels-a-projets/", "Malakoff Humanis", "https://fondation.malakoffhumanis.com")
+    return scrape_generic("https://fondationhandicap.malakoffhumanis.com/", "Malakoff Humanis", "https://fondationhandicap.malakoffhumanis.com")
 
 def fetch_banque_territoires():
-    return scrape_generic("https://www.banquedesterritoires.fr/appels-a-projets-et-manifestations-d-interet", "Banque des Territoires", "https://www.banquedesterritoires.fr")
+    return scrape_generic("https://www.banquedesterritoires.fr/france-2030/appels-projets-en-cours", "Banque des Territoires", "https://www.banquedesterritoires.fr")
 
 def fetch_fondation_abbe_pierre():
-    return scrape_generic("https://www.fondation-abbe-pierre.fr/nos-actions/appels-a-projets", "Fondation Abbe Pierre", "https://www.fondation-abbe-pierre.fr")
+    return scrape_generic("https://www.fondation-abbe-pierre.fr/nos-actions/soutenir-financer-et-fonder-des-projets", "Fondation Abbe Pierre", "https://www.fondation-abbe-pierre.fr")
 
 def fetch_fondation_ag2r():
-    return scrape_generic("https://www.fondation-ag2r.com/appels-a-projets", "Fondation AG2R La Mondiale", "https://www.fondation-ag2r.com")
+    return scrape_generic("https://www.ag2rlamondiale.fr/fondation-d-entreprise/votre-projet", "Fondation AG2R La Mondiale", "https://www.ag2rlamondiale.fr")
 
 def fetch_fondation_sncf():
     return scrape_generic("https://www.fondation-sncf.org/fr/appels-a-projets", "Fondation SNCF", "https://www.fondation-sncf.org")
@@ -161,7 +163,7 @@ def build_email_html(aaps):
     cards_html = ""
     for aap in aaps:
         cards_html += f'<div style="border-left:4px solid #1a56db;padding:12px 16px;margin-bottom:20px;background:#f8faff;"><p style="margin:0 0 4px;font-size:12px;color:#666;">{aap["source"]}</p><h3 style="margin:0 0 6px;font-size:16px;"><a href="{aap["url"]}" style="color:#1a56db;text-decoration:none;">{aap["title"]}</a></h3><p style="margin:0 0 6px;font-size:13px;">{aap["summary"]}</p><p style="margin:0;font-size:12px;color:#888;">Date limite : {aap["deadline"]}</p></div>'
-    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires · Region IDF · Mairie de Paris · Fondation de France · Malakoff Humanis · Banque des Territoires · Fondation Abbe Pierre · AG2R La Mondiale · Fondation SNCF · Fondation Mozaik · Associations.gouv.fr</p></div>'
+    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires Â· Region IDF Â· Mairie de Paris Â· Fondation de France Â· Malakoff Humanis Â· Banque des Territoires Â· Fondation Abbe Pierre Â· AG2R La Mondiale Â· Fondation SNCF Â· Fondation Mozaik Â· Associations.gouv.fr</p></div>'
 
 def send_email(aaps):
     subject = f"Veille AAP FACE - {len(aaps)} resultat(s) - {datetime.now().strftime('%d/%m/%Y')}" if aaps else f"Veille AAP FACE - RAS - {datetime.now().strftime('%d/%m/%Y')}"
