@@ -164,7 +164,7 @@ def build_email_html(aaps):
     cards_html = ""
     for aap in aaps:
         cards_html += f'<div style="border-left:4px solid #1a56db;padding:12px 16px;margin-bottom:20px;background:#f8faff;"><p style="margin:0 0 4px;font-size:12px;color:#666;">{aap["source"]}</p><h3 style="margin:0 0 6px;font-size:16px;"><a href="{aap["url"]}" style="color:#1a56db;text-decoration:none;">{aap["title"]}</a></h3><p style="margin:0 0 6px;font-size:13px;">{aap["summary"]}</p><p style="margin:0;font-size:12px;color:#888;">Date limite : {aap["deadline"]}</p></div>'
-    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂÃÂ· Region IDF ÃÂÃÂ· Mairie de Paris ÃÂÃÂ· Fondation de France ÃÂÃÂ· Malakoff Humanis ÃÂÃÂ· Banque des Territoires ÃÂÃÂ· Fondation Abbe Pierre ÃÂÃÂ· AG2R La Mondiale ÃÂÃÂ· Fondation SNCF ÃÂÃÂ· Fondation Mozaik ÃÂÃÂ· Associations.gouv.fr</p></div>'
+    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂÃÂÃÂÃÂ· Region IDF ÃÂÃÂÃÂÃÂ· Mairie de Paris ÃÂÃÂÃÂÃÂ· Fondation de France ÃÂÃÂÃÂÃÂ· Malakoff Humanis ÃÂÃÂÃÂÃÂ· Banque des Territoires ÃÂÃÂÃÂÃÂ· Fondation Abbe Pierre ÃÂÃÂÃÂÃÂ· AG2R La Mondiale ÃÂÃÂÃÂÃÂ· Fondation SNCF ÃÂÃÂÃÂÃÂ· Fondation Mozaik ÃÂÃÂÃÂÃÂ· Associations.gouv.fr</p></div>'
 
 
 def fetch_drieets_idf():
@@ -276,6 +276,34 @@ def fetch_fondation_ceidf():
     print(f"  Fondation CEIDF: {len(results)} trouves")
     return results
 
+
+def fetch_fdva92():
+    results = []
+    url = "https://www.hauts-de-seine.gouv.fr/Actions-de-l-Etat/Jeunesse-sport/Aides-et-subventions"
+    try:
+        r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(r.text, "html.parser")
+        for a in soup.find_all("a", href=True):
+            text = a.get_text(strip=True)
+            if is_relevant(text) or any(k in text.lower() for k in ["fdva", "subvention", "appel", "association"]):
+                href = a["href"]
+                if href.startswith("/"):
+                    href = "https://www.hauts-de-seine.gouv.fr" + href
+                if href.startswith("http") and text:
+                    results.append({"source": "FDVA 92 / Prefecture", "title": text, "url": href, "deadline": "voir le lien", "summary": text})
+        results = [r for r in results if is_relevant(r["title"])]
+    except Exception as e:
+        print(f"  Erreur FDVA 92: {e}")
+        source_errors["FDVA 92"] = str(e)
+    print(f"  FDVA 92: {len(results)} trouves")
+    return results
+
+def fetch_fondation_edf():
+    return scrape_generic("https://fondation.edf.com/deposez-un-projet/", "Fondation EDF", "https://fondation.edf.com")
+
+def fetch_fondation_totalenergies():
+    return scrape_generic("https://fondation.totalenergies.com/fr/appel-a-projets-2026", "Fondation TotalEnergies", "https://fondation.totalenergies.com")
+
 def send_email(aaps):
     subject = f"Veille AAP FACE - {len(aaps)} resultat(s) - {datetime.now().strftime('%d/%m/%Y')}" if aaps else f"Veille AAP FACE - RAS - {datetime.now().strftime('%d/%m/%Y')}"
     print(f"Envoi email ({len(aaps)} AAP)...")
@@ -300,6 +328,9 @@ if __name__ == "__main__":
     all_aaps.extend(fetch_cd92())
     all_aaps.extend(fetch_fondation_orange())
     all_aaps.extend(fetch_fondation_ceidf())
+    all_aaps.extend(fetch_fdva92())
+    all_aaps.extend(fetch_fondation_edf())
+    all_aaps.extend(fetch_fondation_totalenergies())
     print(f"\nTotal : {len(all_aaps)} AAP pertinents\n")
     send_email(all_aaps)
     print("\nTermine.")
