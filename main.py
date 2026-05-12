@@ -149,10 +149,10 @@ def fetch_fondation_ag2r():
     return scrape_generic("https://www.ag2rlamondiale.fr/fondation-d-entreprise/votre-projet", "Fondation AG2R La Mondiale", "https://www.ag2rlamondiale.fr")
 
 def fetch_fondation_sncf():
-    return scrape_generic("https://www.fondation-sncf.org/fr/appels-a-projets", "Fondation SNCF", "https://www.fondation-sncf.org")
+    return scrape_generic("https://www.fondation-sncf.org/fr/nos-appels-a-projets/", "Fondation SNCF", "https://www.fondation-sncf.org")
 
 def fetch_fondation_mozaik():
-    return scrape_generic("https://www.fondationmozaik.com/appel-a-projets/", "Fondation Mozaik", "https://www.fondationmozaik.com")
+    return scrape_generic("https://www.fondation-mozaik.org/appels-a-projets/", "Fondation Mozaik", "https://www.fondation-mozaik.org")
 
 def fetch_associations_gouv():
     return scrape_generic("https://associations.gouv.fr/appels-projets", "Associations.gouv.fr", "https://associations.gouv.fr")
@@ -164,7 +164,7 @@ def build_email_html(aaps):
     cards_html = ""
     for aap in aaps:
         cards_html += f'<div style="border-left:4px solid #1a56db;padding:12px 16px;margin-bottom:20px;background:#f8faff;"><p style="margin:0 0 4px;font-size:12px;color:#666;">{aap["source"]}</p><h3 style="margin:0 0 6px;font-size:16px;"><a href="{aap["url"]}" style="color:#1a56db;text-decoration:none;">{aap["title"]}</a></h3><p style="margin:0 0 6px;font-size:13px;">{aap["summary"]}</p><p style="margin:0;font-size:12px;color:#888;">Date limite : {aap["deadline"]}</p></div>'
-    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂ· Region IDF ÃÂ· Mairie de Paris ÃÂ· Fondation de France ÃÂ· Malakoff Humanis ÃÂ· Banque des Territoires ÃÂ· Fondation Abbe Pierre ÃÂ· AG2R La Mondiale ÃÂ· Fondation SNCF ÃÂ· Fondation Mozaik ÃÂ· Associations.gouv.fr</p></div>'
+    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂÃÂ· Region IDF ÃÂÃÂ· Mairie de Paris ÃÂÃÂ· Fondation de France ÃÂÃÂ· Malakoff Humanis ÃÂÃÂ· Banque des Territoires ÃÂÃÂ· Fondation Abbe Pierre ÃÂÃÂ· AG2R La Mondiale ÃÂÃÂ· Fondation SNCF ÃÂÃÂ· Fondation Mozaik ÃÂÃÂ· Associations.gouv.fr</p></div>'
 
 
 def fetch_drieets_idf():
@@ -296,6 +296,10 @@ if __name__ == "__main__":
     all_aaps.extend(fetch_fondation_sncf())
     all_aaps.extend(fetch_fondation_mozaik())
     all_aaps.extend(fetch_associations_gouv())
+    all_aaps.extend(fetch_drieets_idf())
+    all_aaps.extend(fetch_cd92())
+    all_aaps.extend(fetch_fondation_orange())
+    all_aaps.extend(fetch_fondation_ceidf())
     print(f"\nTotal : {len(all_aaps)} AAP pertinents\n")
     send_email(all_aaps)
     print("\nTermine.")
