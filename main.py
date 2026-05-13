@@ -34,8 +34,19 @@ KEYWORDS = [
     "territoire", "territorial", "collectivite",
 ]
 
+
+NEGATIVE_KEYWORDS = [
+    "feader", "infrastructure routiere", "infrastructure agricole",
+    "facebook.com", "twitter.com", "x.com", "partager sur",
+    "partagez sur", "suivez-nous", "newsletter",
+    "article de presse", "communique de presse", "revue de presse",
+    "festival", "concert", "spectacle",
+]
+
 def is_relevant(text):
     t = text.lower()
+    if any(kw in t for kw in NEGATIVE_KEYWORDS):
+        return False
     return any(kw in t for kw in KEYWORDS)
 
 def scrape_generic(url, source_name, base_url=""):
@@ -164,7 +175,7 @@ def build_email_html(aaps):
     cards_html = ""
     for aap in aaps:
         cards_html += f'<div style="border-left:4px solid #1a56db;padding:12px 16px;margin-bottom:20px;background:#f8faff;"><p style="margin:0 0 4px;font-size:12px;color:#666;">{aap["source"]}</p><h3 style="margin:0 0 6px;font-size:16px;"><a href="{aap["url"]}" style="color:#1a56db;text-decoration:none;">{aap["title"]}</a></h3><p style="margin:0 0 6px;font-size:13px;">{aap["summary"]}</p><p style="margin:0;font-size:12px;color:#888;">Date limite : {aap["deadline"]}</p></div>'
-    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂÃÂÃÂÃÂ· Region IDF ÃÂÃÂÃÂÃÂ· Mairie de Paris ÃÂÃÂÃÂÃÂ· Fondation de France ÃÂÃÂÃÂÃÂ· Malakoff Humanis ÃÂÃÂÃÂÃÂ· Banque des Territoires ÃÂÃÂÃÂÃÂ· Fondation Abbe Pierre ÃÂÃÂÃÂÃÂ· AG2R La Mondiale ÃÂÃÂÃÂÃÂ· Fondation SNCF ÃÂÃÂÃÂÃÂ· Fondation Mozaik ÃÂÃÂÃÂÃÂ· Associations.gouv.fr</p></div>'
+    return f'<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;padding:24px;"><h2 style="color:#1a56db;">Veille AAP - FACE Paris Hauts-de-Seine</h2><p style="color:#666;">{today} - {len(aaps)} AAP pertinent(s)</p>{cards_html}<hr style="margin-top:32px;border:none;border-top:1px solid #eee;"><p style="font-size:11px;color:#aaa;">Sources : Aides-territoires ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Region IDF ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Mairie de Paris ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Fondation de France ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Malakoff Humanis ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Banque des Territoires ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Fondation Abbe Pierre ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· AG2R La Mondiale ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Fondation SNCF ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Fondation Mozaik ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ· Associations.gouv.fr</p></div>'
 
 
 def fetch_drieets_idf():
