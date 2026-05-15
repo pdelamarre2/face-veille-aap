@@ -123,6 +123,5 @@ html = f"""<!DOCTYPE html><html><body style='margin:0;padding:0;background:#f1f5
 <div style='margin-top:28px;padding-top:18px;border-top:1px solid #e2e8f0;font-size:12px;color:{GRIS}'>Veille AAP dans ton inbox - FACE Paris 92</div>
 </div></div></body></html>"""
 
-params = resend.Emails.SendParams(from_="onboarding@resend.dev", to=[EMAIL_TO], subject=f"Briefing {today_label}", html=html)
-r = resend.Emails.send(params)
+r = resend.Emails.send({"from": "onboarding@resend.dev", "to": [EMAIL_TO], "subject": f"Briefing {today_label}", "html": html})
 print(f"Briefing envoye: {r}")
