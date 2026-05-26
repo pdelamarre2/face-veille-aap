@@ -42,6 +42,7 @@ AGENDA = {
     ],
     "2026-05-27": [
         {"h": "Journee", "titre": "Filage Eric Boucaret - Jour 2/2 (dernier)", "lieu": "Nanterre", "urgent": False},
+        {"h": "ACTION", "titre": "Envoyer convocation CA", "lieu": "", "urgent": True},
     ],
     "2026-05-29": [
         {"h": "Deadline", "titre": "Fichier suivi ActionS Retour Emploi a remettre a Ewens Perian", "lieu": "eperian@agence-activity.fr", "urgent": True},
@@ -61,6 +62,7 @@ AGENDA = {
 }
 
 DEADLINES = [
+    {"date": "2026-05-27", "label": "Envoyer convocation au CA"},
     {"date": "2026-05-29", "label": "Fichier suivi ActionS Retour Emploi - Ewens Perian"},
     {"date": "2026-06-08", "label": "Point Activity 10h - ActionS Retour Emploi"},
     {"date": "2026-06-11", "label": "Depot BOP 137 DRDFE - 11 000 euros"},
