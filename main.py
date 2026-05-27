@@ -125,22 +125,43 @@ def fetch_region_idf():
 def fetch_mairie_paris():
     print("Mairie de Paris...")
     results = []
-    url = "https://www.paris.fr/pages/repondre-a-un-appel-a-projets-5412"
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        resp = requests.get(url, headers=headers, timeout=15)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for tag in soup.find_all(["h2", "h3", "h4"]):
-            title = tag.get_text(strip=True)
-            link_tag = tag.find("a", href=True) or tag.find_next("a", href=True)
-            link = link_tag["href"] if link_tag else url
-            if link.startswith("/"):
-                link = "https://www.paris.fr" + link
-            if title and len(title) > 10 and is_relevant(title):
-                results.append({"source": "Mairie de Paris", "title": title, "url": link, "deadline": "voir le lien", "summary": title})
-    except Exception as e:
-        print(f"  Erreur Mairie Paris: {e}")
+    seen = set()
+    base = "https://www.paris.fr"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    for page in range(1, 4):
+        url = f"{base}/appels-a-projets?page={page}" if page > 1 else f"{base}/appels-a-projets"
+        try:
+            resp = requests.get(url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+            found_on_page = 0
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if "/pages/" not in href:
+                    continue
+                title = a.get_text(strip=True)
+                if not title or len(title) < 10 or href in seen:
+                    continue
+                seen.add(href)
+                full_url = base + href if href.startswith("/") else href
+                parent = a.parent
+                deadline = "voir le lien"
+                if parent:
+                    parent_text = parent.get_text(" ", strip=True)
+                    for marker in ["Jusqu'au", "au ", "Du "]:
+                        if marker in parent_text:
+                            idx = parent_text.index(marker)
+                            deadline = parent_text[idx:idx+30].strip()
+                            break
+                if is_relevant(title):
+                    results.append({"source": "Mairie de Paris", "title": title, "url": full_url, "deadline": deadline, "summary": title})
+                    found_on_page += 1
+            if found_on_page == 0 and page > 1:
+                break
+        except Exception as e:
+            print(f"  Erreur Mairie Paris page {page}: {e}")
+            source_errors["Mairie de Paris"] = str(e)
+            break
     print(f"  Mairie de Paris: {len(results)} trouves")
     return results
 
